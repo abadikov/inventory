@@ -1,0 +1,779 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <meta charset="UTF-8" />
+  <title>Инвентаризация — Кофе Гарден</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <style>
+    :root {
+      --bg: #f5f5f7;
+      --card-bg: #ffffff;
+      --text-main: #222222;
+      --text-muted: #777777;
+      --accent: #007bff;
+      --border: #dddddd;
+      --group-bg: #eeeeee;
+      --group-active-bg: #007bff;
+      --group-active-color: #ffffff;
+      --group-filled-bg: #ffd54f;
+      --group-filled-border: #ffb300;
+    }
+
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      margin: 0;
+      padding: 0;
+      background: var(--bg);
+      color: var(--text-main);
+      -webkit-text-size-adjust: 100%;
+    }
+
+    header {
+      background: #222;
+      color: #fff;
+      padding: 12px 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    header h1 {
+      margin: 0;
+      font-size: 18px;
+      font-weight: 600;
+    }
+
+    header span {
+      font-size: 13px;
+      opacity: 0.8;
+    }
+
+    main {
+      display: flex;
+      gap: 16px;
+      padding: 16px;
+    }
+
+    .sidebar {
+      width: 260px;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 14px;
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .sidebar h2 {
+      margin: 0 0 4px;
+      font-size: 15px;
+    }
+
+    .sidebar p {
+      font-size: 12px;
+      color: var(--text-muted);
+      margin: 0;
+    }
+
+    .group-list {
+      margin-top: 8px;
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      max-height: 360px;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .group-btn {
+      width: 100%;
+      padding: 10px 10px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--group-bg);
+      font-size: 14px;
+      text-align: left;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 6px;
+      min-height: 40px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .group-btn span.label {
+      flex: 1;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+
+    .group-btn span.badge {
+      font-size: 11px;
+      padding: 2px 6px;
+      border-radius: 999px;
+      background: rgba(0,0,0,0.06);
+    }
+
+    .group-btn.active {
+      background: var(--group-active-bg);
+      color: var(--group-active-color);
+      border-color: var(--group-active-bg);
+    }
+
+    .group-btn.filled {
+      background: var(--group-filled-bg);
+      border-color: var(--group-filled-border);
+      color: #000;
+    }
+
+    .group-btn.active.filled {
+      background: linear-gradient(90deg, var(--group-filled-bg), var(--group-active-bg));
+      color: #000;
+      border-color: var(--group-filled-border);
+    }
+
+    .content {
+      flex: 1;
+      background: var(--card-bg);
+      border-radius: 12px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 14px;
+      display: flex;
+      flex-direction: column;
+      min-height: 260px;
+    }
+
+    .content-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 8px;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+
+    .content-header h2 {
+      margin: 0;
+      font-size: 15px;
+    }
+
+    .content-header small {
+      color: var(--text-muted);
+      font-size: 12px;
+    }
+
+    #tableContainer {
+      flex: 1;
+      min-height: 120px;
+    }
+
+    table {
+      width: 100%;
+      border-collapse: collapse;
+      font-size: 13px;
+    }
+
+    thead {
+      background: #fafafa;
+      position: sticky;
+      top: 0;
+      z-index: 1;
+    }
+
+    th, td {
+      padding: 8px 6px;
+      border-bottom: 1px solid #eee;
+    }
+
+    th {
+      text-align: left;
+      font-weight: 600;
+      font-size: 12px;
+      color: #555;
+    }
+
+    tbody tr:nth-child(even) {
+      background: #fafafa;
+    }
+
+    input[type="number"] {
+      width: 100%;
+      max-width: 100px;
+      padding: 8px 6px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .actions {
+      margin-top: 10px;
+      display: flex;
+      gap: 8px;
+      justify-content: flex-end;
+      flex-wrap: wrap;
+    }
+
+    button {
+      padding: 10px 16px;
+      border-radius: 999px;
+      border: none;
+      cursor: pointer;
+      font-size: 14px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+      min-height: 44px;
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    button.primary {
+      background: var(--accent);
+      color: #fff;
+    }
+
+    button.secondary {
+      background: #e5e5ea;
+      color: var(--text-main);
+    }
+
+    button:disabled {
+      opacity: 0.6;
+      cursor: default;
+    }
+
+    .empty-group {
+      color: var(--text-muted);
+      font-size: 14px;
+    }
+
+    @media (max-width: 768px) {
+      main {
+        flex-direction: column;
+        padding: 10px;
+      }
+
+      .sidebar {
+        width: 100%;
+        max-width: 100%;
+      }
+
+      .content {
+        width: 100%;
+        margin-top: 8px;
+      }
+
+      header {
+        padding: 10px 12px;
+      }
+
+      header h1 {
+        font-size: 16px;
+      }
+
+      table {
+        font-size: 12px;
+      }
+
+      th, td {
+        padding: 6px 4px;
+      }
+
+      input[type="number"] {
+        max-width: 80px;
+      }
+    }
+  </style>
+</head>
+<body>
+<header>
+  <h1>Инвентаризация — Кофе Гарден</h1>
+  <span>Группы как кнопки, адаптировано под мобильные</span>
+</header>
+
+<main>
+  <aside class="sidebar">
+    <h2>Шаг 1</h2>
+    <p>Нажмите на группу. После ввода количества хотя бы по одному товару кнопка группы станет жёлтой.</p>
+    <div class="group-list" id="groupButtons"></div>
+  </aside>
+
+  <section class="content">
+    <div class="content-header">
+      <h2 id="groupTitle">Группа не выбрана</h2>
+      <small id="groupMeta"></small>
+    </div>
+
+    <div id="tableContainer">
+      <p class="empty-group">Выберите группу слева, чтобы начать инвентаризацию.</p>
+    </div>
+
+    <div class="actions">
+      <button class="secondary" type="button" onclick="clearQuantities()">Очистить количества</button>
+      <button class="primary" type="button" onclick="saveResult()" id="saveBtn" disabled>
+        💾 Сохранить
+      </button>
+    </div>
+  </section>
+</main>
+
+<script>
+  // --- Полезный полифилл для Object.keys на старых браузерах ---
+  if (!Object.keys) {
+    Object.keys = function (obj) {
+      var result = [];
+      for (var prop in obj) {
+        if (Object.prototype.hasOwnProperty.call(obj, prop)) {
+          result.push(prop);
+        }
+      }
+      return result;
+    };
+  }
+
+  // Данные из Excel (пример — дополни по необходимости)
+  var INVENTORY_DATA = {
+    "Группа": [
+      {"code": "4680167840074", "name": "Молоко безлактозное", "unit": "л"},
+      {"code": "4680167840075", "name": "Молоко Кокосовое", "unit": "л"},
+      {"code": "4680167840076", "name": "Молоко Миндальное", "unit": "л"},
+      {"code": "4680167840077", "name": "Молоко Овсяное Barista", "unit": "л"},
+      {"code": "4680167840094", "name": "Сливки для взбивания", "unit": "л"}
+    ],
+    "СИРОПЫ": [
+      {"code": "4680167840100", "name": "Сироп Ваниль", "unit": "л"},
+      {"code": "4680167840101", "name": "Сироп Карамель", "unit": "л"},
+      {"code": "4680167840102", "name": "Сироп Лесной орех", "unit": "л"},
+      {"code": "4680167840103", "name": "Сироп Кокос", "unit": "л"}
+    ],
+    "Хозка": [
+      {"code": "4680167840200", "name": "Салфетки бумажные", "unit": "упак"},
+      {"code": "4680167840201", "name": "Стаканы бумажные 250 мл", "unit": "шт"},
+      {"code": "4680167840202", "name": "Стаканы бумажные 350 мл", "unit": "шт"},
+      {"code": "4680167840203", "name": "Крышки для стаканов", "unit": "шт"}
+    ],
+    "ЧАЙ ТОВАР": [
+      {"code": "4680167840300", "name": "Чай чёрный листовой", "unit": "шт"},
+      {"code": "4680167840301", "name": "Чай зелёный листовой", "unit": "шт"},
+      {"code": "4680167840302", "name": "Чай травяной ассорти", "unit": "шт"}
+    ],
+    "вода / соки": [
+      {"code": "4680167840155", "name": "Вода негазированная 0.5", "unit": "шт"},
+      {"code": "4680167840157", "name": "Вода газированная 0.5", "unit": "шт"},
+      {"code": "4680167840158", "name": "Сок яблочный", "unit": "шт"},
+      {"code": "4680167840159", "name": "Сок апельсиновый", "unit": "шт"}
+    ],
+    "выпечка": [
+      {"code": "4680167840143", "name": "Круассан буше на масле", "unit": "шт"},
+      {"code": "4680167840144", "name": "Круассан с миндальным кремом", "unit": "шт"},
+      {"code": "4680167840146", "name": "Круассан с фисташковым кремом", "unit": "шт"},
+      {"code": "4680167840145", "name": "Круассан с шоколадом", "unit": "шт"},
+      {"code": "4680167840147", "name": "Круассан сыр ветчина", "unit": "шт"},
+      {"code": "4680167840150", "name": "Слойка с Курой", "unit": "шт"},
+      {"code": "4680167840151", "name": "Слойка с сосиской", "unit": "шт"},
+      {"code": "4680167840154", "name": "Хачапури", "unit": "шт"}
+    ]
+    // можно дописать остальные группы
+  };
+
+  var currentGroup = null;
+  var groupButtons = {}; // groupName -> кнопка
+
+  // Глобальный кэш ввода
+  var INVENTORY_STATE = {
+    quantities: {}
+  };
+
+  function initGroups() {
+    var container = document.getElementById('groupButtons');
+    container.innerHTML = '';
+
+    var groups = Object.keys(INVENTORY_DATA);
+    groups.sort(function (a, b) {
+      if (a.localeCompare) {
+        return a.localeCompare(b, 'ru');
+      }
+      return a > b ? 1 : (a < b ? -1 : 0);
+    });
+
+    for (var i = 0; i < groups.length; i++) {
+      (function (group) {
+        var btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'group-btn';
+        btn.innerHTML =
+          '<span class="label">' + group + '</span>' +
+          '<span class="badge">' + INVENTORY_DATA[group].length + '</span>';
+
+        btn.addEventListener('click', function () {
+          selectGroup(group);
+        });
+
+        container.appendChild(btn);
+        groupButtons[group] = btn;
+      })(groups[i]);
+    }
+  }
+
+  function selectGroup(group) {
+    currentGroup = group;
+
+    // активная кнопка
+    for (var name in groupButtons) {
+      if (!groupButtons.hasOwnProperty(name)) continue;
+      var btn = groupButtons[name];
+      if (name === group) {
+        if (btn.classList) {
+          btn.classList.add('active');
+        } else {
+          btn.className += ' active';
+        }
+      } else {
+        if (btn.classList) {
+          btn.classList.remove('active');
+        } else {
+          btn.className = btn.className.replace(/\bactive\b/, '');
+        }
+      }
+    }
+
+    renderGroupTable(group);
+  }
+
+  function renderGroupTable(group) {
+    var container = document.getElementById('tableContainer');
+    var title = document.getElementById('groupTitle');
+    var meta = document.getElementById('groupMeta');
+    var saveBtn = document.getElementById('saveBtn');
+
+    if (!group) {
+      title.textContent = 'Группа не выбрана';
+      meta.textContent = '';
+      container.innerHTML = '<p class="empty-group">Выберите группу слева, чтобы начать инвентаризацию.</p>';
+      saveBtn.disabled = true;
+      return;
+    }
+
+    var items = INVENTORY_DATA[group] || [];
+    title.textContent = 'Группа: ' + group;
+    meta.textContent = 'Позиций: ' + items.length;
+    saveBtn.disabled = items.length === 0;
+
+    if (items.length === 0) {
+      container.innerHTML = '<p class="empty-group">В этой группе нет позиций.</p>';
+      return;
+    }
+
+    var groupState = INVENTORY_STATE.quantities[group] || {};
+    var rows = '';
+
+    for (var i = 0; i < items.length; i++) {
+      var item = items[i];
+      var unit = item.unit || '';
+      var code = item.code || '';
+      var key = code || ('i' + i); // ключ для кэша
+      var id = 'qty_' + key;
+      var value = (groupState.hasOwnProperty(key) && groupState[key] != null) ? groupState[key] : '';
+
+      rows +=
+        '<tr>' +
+          '<td>' + (i + 1) + '</td>' +
+          '<td>' + code + '</td>' +
+          '<td>' + (item.name || '') + '</td>' +
+          '<td>' + unit + '</td>' +
+          '<td>' +
+            '<input ' +
+              'type="number" ' +
+              'id="' + id + '" ' +
+              'inputmode="decimal" ' +
+              'min="0" ' +
+              'step="0.01" ' +
+              'data-code="' + code + '" ' +
+              'data-name="' + (item.name || '') + '" ' +
+              'data-unit="' + unit + '" ' +
+              'data-key="' + key + '" ' +
+              'value="' + value + '"' +
+            '/>' +
+          '</td>' +
+        '</tr>';
+    }
+
+    container.innerHTML =
+      '<div style="max-height: 360px; overflow-y: auto; -webkit-overflow-scrolling: touch;">' +
+        '<table>' +
+          '<thead>' +
+            '<tr>' +
+              '<th>#</th>' +
+              '<th>Код</th>' +
+              '<th>Наименование</th>' +
+              '<th>Ед.</th>' +
+              '<th>Количество</th>' +
+            '</tr>' +
+          '</thead>' +
+          '<tbody>' +
+            rows +
+          '</tbody>' +
+        '</table>' +
+      '</div>';
+
+    var inputs = container.querySelectorAll('input[type="number"]');
+    for (var j = 0; j < inputs.length; j++) {
+      (function (inp) {
+        inp.addEventListener('input', function () {
+          onQtyInput(group, inp);
+        });
+      })(inputs[j]);
+    }
+
+    updateGroupFilledState(group);
+  }
+
+  function onQtyInput(group, input) {
+    var key = input.getAttribute('data-key');
+    if (!key) return;
+
+    if (!INVENTORY_STATE.quantities[group]) {
+      INVENTORY_STATE.quantities[group] = {};
+    }
+
+    var raw = input.value.replace(/^\s+|\s+$/g, '');
+    if (raw === '') {
+      delete INVENTORY_STATE.quantities[group][key];
+    } else {
+      var normalized = raw.replace(',', '.');
+      var qty = parseFloat(normalized);
+      if (!isNaN(qty)) {
+        INVENTORY_STATE.quantities[group][key] = qty;
+      } else {
+        delete INVENTORY_STATE.quantities[group][key];
+      }
+    }
+
+    updateGroupFilledState(group);
+  }
+
+  function updateGroupFilledState(group) {
+    var btn = groupButtons[group];
+    if (!btn) return;
+
+    var groupState = INVENTORY_STATE.quantities[group];
+    var anyFilled = false;
+    if (groupState) {
+      for (var key in groupState) {
+        if (groupState.hasOwnProperty(key)) {
+          anyFilled = true;
+          break;
+        }
+      }
+    }
+
+    if (anyFilled) {
+      if (btn.classList) {
+        btn.classList.add('filled');
+      } else {
+        if (btn.className.indexOf('filled') === -1) {
+          btn.className += ' filled';
+        }
+      }
+    } else {
+      if (btn.classList) {
+        btn.classList.remove('filled');
+      } else {
+        btn.className = btn.className.replace(/\bfilled\b/, '');
+      }
+    }
+  }
+
+  function clearQuantities() {
+    if (!currentGroup) return;
+    var container = document.getElementById('tableContainer');
+    var inputs = container.querySelectorAll('input[type="number"]');
+    for (var i = 0; i < inputs.length; i++) {
+      inputs[i].value = '';
+    }
+
+    delete INVENTORY_STATE.quantities[currentGroup];
+    updateGroupFilledState(currentGroup);
+  }
+
+  function saveResult() {
+    var allGroups = Object.keys(INVENTORY_STATE.quantities);
+    var groupsWithData = [];
+    for (var i = 0; i < allGroups.length; i++) {
+      var gr = allGroups[i];
+      var g = INVENTORY_STATE.quantities[gr];
+      var hasKeys = false;
+      for (var k in g) {
+        if (g.hasOwnProperty(k)) {
+          hasKeys = true;
+          break;
+        }
+      }
+      if (hasKeys) {
+        groupsWithData.push(gr);
+      }
+    }
+
+    if (groupsWithData.length === 0) {
+      alert('Нет введённых количеств ни по одной группе.');
+      return;
+    }
+
+    var timestamp = new Date();
+    var iso = timestamp.toISOString ? timestamp.toISOString() : '';
+    var dateStr = timestamp.toLocaleString ? timestamp.toLocaleString('ru-RU') : String(timestamp);
+
+    var resultGroups = [];
+
+    for (var gi = 0; gi < groupsWithData.length; gi++) {
+      var group = groupsWithData[gi];
+      var state = INVENTORY_STATE.quantities[group];
+      var itemsDef = INVENTORY_DATA[group] || [];
+      var items = [];
+
+      for (var key in state) {
+        if (!state.hasOwnProperty(key)) continue;
+        var qty = state[key];
+        var item = null;
+
+        // поиск по коду
+        for (var idx = 0; idx < itemsDef.length; idx++) {
+          if (itemsDef[idx].code === key) {
+            item = itemsDef[idx];
+            break;
+          }
+        }
+
+        // если код не совпал и ключ вида iN — пробуем по индексу
+        if (!item && key.indexOf('i') === 0) {
+          var indexNum = parseInt(key.substring(1), 10);
+          if (!isNaN(indexNum) && itemsDef[indexNum]) {
+            item = itemsDef[indexNum];
+          }
+        }
+
+        if (item) {
+          items.push({
+            code: item.code || '',
+            name: item.name || '',
+            unit: item.unit || '',
+            qty: qty
+          });
+        }
+      }
+
+      if (items.length > 0) {
+        resultGroups.push({
+          name: group,
+          items: items
+        });
+      }
+    }
+
+    if (resultGroups.length === 0) {
+      alert('Не удалось сопоставить введённые данные с товарами.');
+      return;
+    }
+
+    var resultObj = {
+      timestamp: iso,
+      groups: resultGroups
+    };
+
+    var html =
+'<!DOCTYPE html>\n' +
+'<html lang="ru">\n' +
+'<head>\n' +
+'  <meta charset="UTF-8" />\n' +
+'  <title>Инвентаризация — выбранные группы</title>\n' +
+'  <style>\n' +
+'    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 16px; }\n' +
+'    h1 { font-size: 20px; margin-bottom: 4px; }\n' +
+'    h2 { font-size: 18px; margin-top: 18px; }\n' +
+'    p { font-size: 14px; }\n' +
+'    table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 13px; }\n' +
+'    th, td { border: 1px solid #cccccc; padding: 6px 8px; text-align: left; }\n' +
+'    th { background: #f0f0f0; }\n' +
+'    pre { background: #f8f8f8; padding: 8px; border-radius: 4px; font-size: 12px; overflow-x: auto; }\n' +
+'    hr { margin: 18px 0; border: none; border-top: 1px solid #e0e0e0; }\n' +
+'  </style>\n' +
+'</head>\n' +
+'<body>\n' +
+'  <h1>Инвентаризация — выбранные группы</h1>\n' +
+'  <p>Дата и время: ' + dateStr + '</p>\n';
+
+    for (var rg = 0; rg < resultGroups.length; rg++) {
+      var groupObj = resultGroups[rg];
+      html +=
+'  <hr />\n' +
+'  <h2>Группа: ' + groupObj.name + '</h2>\n' +
+'  <table>\n' +
+'    <thead>\n' +
+'      <tr>\n' +
+'        <th>#</th>\n' +
+'        <th>Код</th>\n' +
+'        <th>Наименование</th>\n' +
+'        <th>Ед.</th>\n' +
+'        <th>Количество</th>\n' +
+'      </tr>\n' +
+'    </thead>\n' +
+'    <tbody>\n';
+
+      for (var it = 0; it < groupObj.items.length; it++) {
+        var item = groupObj.items[it];
+        html +=
+'      <tr>\n' +
+'        <td>' + (it + 1) + '</td>\n' +
+'        <td>' + item.code + '</td>\n' +
+'        <td>' + item.name + '</td>\n' +
+'        <td>' + item.unit + '</td>\n' +
+'        <td>' + item.qty + '</td>\n' +
+'      </tr>\n';
+      }
+
+      html +=
+'    </tbody>\n' +
+'  </table>\n';
+    }
+
+    html +=
+'  <h2>JSON</h2>\n' +
+'  <pre>' + JSON.stringify(resultObj, null, 2) + '</pre>\n' +
+'</body>\n' +
+'</html>\n';
+
+    try {
+      var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
+      var url = (window.URL || window.webkitURL).createObjectURL(blob);
+      var fileName = 'inventory_all_' + (iso ? iso.slice(0, 16).replace(/[:T]/g, '-') : 'result') + '.html';
+
+      var a = document.createElement('a');
+      a.href = url;
+      a.download = fileName;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+
+      (window.URL || window.webkitURL).revokeObjectURL(url);
+    } catch (e) {
+      alert('Не удалось сохранить файл в этом браузере. Попробуйте открыть страницу в обычном браузере (Safari/Chrome).');
+    }
+  }
+
+  // Инициализация после загрузки
+  if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initGroups);
+  } else {
+    initGroups();
+  }
+</script>
+</body>
+</html>
