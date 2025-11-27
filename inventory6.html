@@ -605,168 +605,102 @@
   }
 
   function saveResult() {
-  // собираем ВСЕ группы, где что-то введено
-  const groupsWithData = Object.keys(INVENTORY_STATE.quantities)
-    .filter(group => {
-      const g = INVENTORY_STATE.quantities[group];
-      return g && Object.keys(g).length > 0;
-    });
-
-  if (groupsWithData.length === 0) {
-    alert('Нет введённых количеств ни по одной группе.');
-    return;
-  }
-
-  const timestamp = new Date();
-  const iso = timestamp.toISOString();
-  const dateStr = timestamp.toLocaleString('ru-RU');
-
-  const resultGroups = [];
-
-  groupsWithData.forEach(group => {
-    const state = INVENTORY_STATE.quantities[group];
-    const itemsDef = INVENTORY_DATA[group] || [];
-    const items = [];
-
-    Object.entries(state).forEach(([key, qty]) => {
-      let item = null;
-
-      // по коду
-      item = itemsDef.find(it => it.code === key);
-
-      // если ключ вида iN — по индексу
-      if (!item && key.startsWith('i')) {
-        const indexNum = parseInt(key.slice(1), 10);
-        if (!Number.isNaN(indexNum) && itemsDef[indexNum]) {
-          item = itemsDef[indexNum];
+    var allGroups = Object.keys(INVENTORY_STATE.quantities);
+    var groupsWithData = [];
+    for (var i = 0; i < allGroups.length; i++) {
+      var gr = allGroups[i];
+      var g = INVENTORY_STATE.quantities[gr];
+      var hasKeys = false;
+      for (var k in g) {
+        if (g.hasOwnProperty(k)) {
+          hasKeys = true;
+          break;
         }
       }
-
-      if (item) {
-        items.push({
-          code: item.code || '',
-          name: item.name || '',
-          unit: item.unit || '',
-          qty: qty
-        });
+      if (hasKeys) {
+        groupsWithData.push(gr);
       }
-    });
-
-    if (items.length > 0) {
-      resultGroups.push({
-        name: group,
-        items: items
-      });
     }
-  });
 
-  if (resultGroups.length === 0) {
-    alert('Не удалось сопоставить введённые данные с товарами.');
-    return;
-  }
-
-  const resultObj = {
-    timestamp: iso,
-    groups: resultGroups
-  };
-
-  // ---------- ВАЖНО: если запущено как Telegram WebApp ----------
-  if (window.Telegram && Telegram.WebApp) {
-    try {
-      Telegram.WebApp.sendData(JSON.stringify(resultObj));
-    } catch (e) {
-      console.error('Ошибка sendData:', e);
-      alert('Не удалось передать данные в бота.');
+    if (groupsWithData.length === 0) {
+      alert('Нет введённых количеств ни по одной группе.');
       return;
     }
 
-    // по желанию можно сразу закрыть мини-приложение
-    try {
-      Telegram.WebApp.close();
-    } catch (e) {
-      console.warn('Не удалось закрыть WebApp:', e);
+    var timestamp = new Date();
+    var iso = timestamp.toISOString ? timestamp.toISOString() : '';
+    var dateStr = timestamp.toLocaleString ? timestamp.toLocaleString('ru-RU') : String(timestamp);
+
+    var resultGroups = [];
+
+    for (var gi = 0; gi < groupsWithData.length; gi++) {
+      var group = groupsWithData[gi];
+      var state = INVENTORY_STATE.quantities[group];
+      var itemsDef = INVENTORY_DATA[group] || [];
+      var items = [];
+
+      for (var key in state) {
+        if (!state.hasOwnProperty(key)) continue;
+        var qty = state[key];
+        var item = null;
+
+        // поиск по коду
+        for (var idx = 0; idx < itemsDef.length; idx++) {
+          if (itemsDef[idx].code === key) {
+            item = itemsDef[idx];
+            break;
+          }
+        }
+
+        // если код не совпал и ключ вида iN — пробуем по индексу
+        if (!item && key.indexOf('i') === 0) {
+          var indexNum = parseInt(key.substring(1), 10);
+          if (!isNaN(indexNum) && itemsDef[indexNum]) {
+            item = itemsDef[indexNum];
+          }
+        }
+
+        if (item) {
+          items.push({
+            code: item.code || '',
+            name: item.name || '',
+            unit: item.unit || '',
+            qty: qty
+          });
+        }
+      }
+
+      if (items.length > 0) {
+        resultGroups.push({
+          name: group,
+          items: items
+        });
+      }
     }
-    return; // дальше файл уже не скачиваем
-  }
 
-  // ---------- Обычный режим (браузер) — старое поведение ----------
-  let html = `
-<!DOCTYPE html>
-<html lang="ru">
-<head>
-  <meta charset="UTF-8" />
-  <title>Инвентаризация — выбранные группы</title>
-  <style>
-    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 16px; }
-    h1 { font-size: 20px; margin-bottom: 4px; }
-    h2 { font-size: 18px; margin-top: 18px; }
-    p { font-size: 14px; }
-    table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 13px; }
-    th, td { border: 1px solid #cccccc; padding: 6px 8px; text-align: left; }
-    th { background: #f0f0f0; }
-    pre { background: #f8f8f8; padding: 8px; border-radius: 4px; font-size: 12px; overflow-x: auto; }
-    hr { margin: 18px 0; border: none; border-top: 1px solid #e0e0e0; }
-  </style>
-</head>
-<body>
-  <h1>Инвентаризация — выбранные группы</h1>
-  <p>Дата и время: ${dateStr}</p>
-`;
+    if (resultGroups.length === 0) {
+      alert('Не удалось сопоставить введённые данные с товарами.');
+      return;
+    }
 
-  resultGroups.forEach(group => {
-    html += `
-  <hr />
-  <h2>Группа: ${group.name}</h2>
-  <table>
-    <thead>
-      <tr>
-        <th>#</th>
-        <th>Код</th>
-        <th>Наименование</th>
-        <th>Ед.</th>
-        <th>Количество</th>
-      </tr>
-    </thead>
-    <tbody>
-`;
-
-    group.items.forEach((item, index) => {
-      html += `
-      <tr>
-        <td>${index + 1}</td>
-        <td>${item.code}</td>
-        <td>${item.name}</td>
-        <td>${item.unit}</td>
-        <td>${item.qty}</td>
-      </tr>
-`;
-    });
-
-    html += `
-    </tbody>
-  </table>
-`;
-  });
-
-  html += `
-  <h2>JSON</h2>
-  <pre>${JSON.stringify(resultObj, null, 2)}</pre>
-</body>
-</html>
-`;
-
-  const blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-  const url = URL.createObjectURL(blob);
-  const fileName = `inventory_all_${iso.slice(0, 16).replace(/[:T]/g, '-')}.html`;
-
-  const a = document.createElement('a');
-  a.href = url;
-  a.download = fileName;
-  document.body.appendChild(a);
-  a.click();
-  document.body.removeChild(a);
-  URL.revokeObjectURL(url);
-};
+    var resultObj = {
+      timestamp: iso,
+      groups: resultGroups
+    };
+    
+   // Если открыто как Telegram WebApp — шлём данные боту и выходим
+    if (window.Telegram && window.Telegram.WebApp) {
+      try {
+        window.Telegram.WebApp.sendData(JSON.stringify(resultObj));
+        if (window.Telegram.WebApp.close) {
+          window.Telegram.WebApp.close();
+        }
+      } catch (e) {
+        console.error('Telegram WebApp sendData error', e);
+        alert('Не удалось передать данные в бота. Попробуйте ещё раз.');
+      }
+      return; // дальше HTML-файл уже не генерируем
+    }
     var html =
 '<!DOCTYPE html>\n' +
 '<html lang="ru">\n' +
@@ -856,4 +790,3 @@
 </script>
 </body>
 </html>
-
