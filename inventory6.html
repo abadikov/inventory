@@ -688,19 +688,19 @@
       groups: resultGroups
     };
     
-   // Если открыто как Telegram WebApp — шлём данные боту и выходим
-    if (window.Telegram && window.Telegram.WebApp) {
-      try {
-        window.Telegram.WebApp.sendData(JSON.stringify(resultObj));
-        if (window.Telegram.WebApp.close) {
-          window.Telegram.WebApp.close();
-        }
-      } catch (e) {
-        console.error('Telegram WebApp sendData error', e);
-        alert('Не удалось передать данные в бота. Попробуйте ещё раз.');
-      }
-      return; // дальше HTML-файл уже не генерируем
-    }
+   // // Если открыто как Telegram WebApp — шлём данные боту и выходим
+   //  if (window.Telegram && window.Telegram.WebApp) {
+   //    try {
+   //      window.Telegram.WebApp.sendData(JSON.stringify(resultObj));
+   //      if (window.Telegram.WebApp.close) {
+   //        window.Telegram.WebApp.close();
+   //      }
+   //    } catch (e) {
+   //      console.error('Telegram WebApp sendData error', e);
+   //      alert('Не удалось передать данные в бота. Попробуйте ещё раз.');
+   //    }
+   //    return; // дальше HTML-файл уже не генерируем
+   //  }
     var html =
 '<!DOCTYPE html>\n' +
 '<html lang="ru">\n' +
@@ -790,3 +790,4 @@
 </script>
 </body>
 </html>
+
