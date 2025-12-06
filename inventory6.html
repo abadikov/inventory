@@ -604,7 +604,7 @@
     updateGroupFilledState(currentGroup);
   }
 
-  function saveResult() {
+    function saveResult() {
     var allGroups = Object.keys(INVENTORY_STATE.quantities);
     var groupsWithData = [];
     for (var i = 0; i < allGroups.length; i++) {
@@ -687,7 +687,8 @@
       timestamp: iso,
       groups: resultGroups
     };
-    // ---------- ВАЖНО: если запущено как Telegram WebApp ----------
+
+    // ---------- Только работа через Telegram WebApp ----------
     if (window.Telegram && Telegram.WebApp) {
       try {
         Telegram.WebApp.sendData(JSON.stringify(resultObj));
@@ -697,92 +698,17 @@
         return;
       }
 
-      // по желанию можно сразу закрыть мини-приложение
       try {
         Telegram.WebApp.close();
       } catch (e) {
         console.warn('Не удалось закрыть WebApp:', e);
       }
-      return; // дальше файл уже не скачиваем
-    }
-    var html =
-'<!DOCTYPE html>\n' +
-'<html lang="ru">\n' +
-'<head>\n' +
-'  <meta charset="UTF-8" />\n' +
-'  <title>Инвентаризация — выбранные группы</title>\n' +
-'  <style>\n' +
-'    body { font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif; padding: 16px; }\n' +
-'    h1 { font-size: 20px; margin-bottom: 4px; }\n' +
-'    h2 { font-size: 18px; margin-top: 18px; }\n' +
-'    p { font-size: 14px; }\n' +
-'    table { border-collapse: collapse; width: 100%; margin-top: 8px; font-size: 13px; }\n' +
-'    th, td { border: 1px solid #cccccc; padding: 6px 8px; text-align: left; }\n' +
-'    th { background: #f0f0f0; }\n' +
-'    pre { background: #f8f8f8; padding: 8px; border-radius: 4px; font-size: 12px; overflow-x: auto; }\n' +
-'    hr { margin: 18px 0; border: none; border-top: 1px solid #e0e0e0; }\n' +
-'  </style>\n' +
-'</head>\n' +
-'<body>\n' +
-'  <h1>Инвентаризация — выбранные группы</h1>\n' +
-'  <p>Дата и время: ' + dateStr + '</p>\n';
-
-    for (var rg = 0; rg < resultGroups.length; rg++) {
-      var groupObj = resultGroups[rg];
-      html +=
-'  <hr />\n' +
-'  <h2>Группа: ' + groupObj.name + '</h2>\n' +
-'  <table>\n' +
-'    <thead>\n' +
-'      <tr>\n' +
-'        <th>#</th>\n' +
-'        <th>Код</th>\n' +
-'        <th>Наименование</th>\n' +
-'        <th>Ед.</th>\n' +
-'        <th>Количество</th>\n' +
-'      </tr>\n' +
-'    </thead>\n' +
-'    <tbody>\n';
-
-      for (var it = 0; it < groupObj.items.length; it++) {
-        var item = groupObj.items[it];
-        html +=
-'      <tr>\n' +
-'        <td>' + (it + 1) + '</td>\n' +
-'        <td>' + item.code + '</td>\n' +
-'        <td>' + item.name + '</td>\n' +
-'        <td>' + item.unit + '</td>\n' +
-'        <td>' + item.qty + '</td>\n' +
-'      </tr>\n';
-      }
-
-      html +=
-'    </tbody>\n' +
-'  </table>\n';
+      return;
     }
 
-    html +=
-'  <h2>JSON</h2>\n' +
-'  <pre>' + JSON.stringify(resultObj, null, 2) + '</pre>\n' +
-'</body>\n' +
-'</html>\n';
-
-    try {
-      var blob = new Blob([html], { type: 'text/html;charset=utf-8' });
-      var url = (window.URL || window.webkitURL).createObjectURL(blob);
-      var fileName = 'inventory_all_' + (iso ? iso.slice(0, 16).replace(/[:T]/g, '-') : 'result') + '.html';
-
-      var a = document.createElement('a');
-      a.href = url;
-      a.download = fileName;
-      document.body.appendChild(a);
-      a.click();
-      document.body.removeChild(a);
-
-      (window.URL || window.webkitURL).revokeObjectURL(url);
-    } catch (e) {
-      alert('Не удалось сохранить файл в этом браузере. Попробуйте открыть страницу в обычном браузере (Safari/Chrome).');
-    }
+    // Если открыли не из Telegram — просто предупредим
+    alert('Инвентаризация не отправлена.\nОткройте эту страницу через кнопку в Telegram-боте.');
+    return;
   }
 
   // Инициализация после загрузки
@@ -794,5 +720,3 @@
 </script>
 </body>
 </html>
-
-
