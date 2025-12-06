@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <title>Инвентаризация — Кофе Гарден</title>
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1" />
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
   <style>
     :root {
       --bg: #f5f5f7;
@@ -688,10 +689,12 @@
       groups: resultGroups
     };
 
-    // ---------- Только работа через Telegram WebApp ----------
-    if (window.Telegram && Telegram.WebApp) {
+    // ---------- Работа через Telegram WebApp ----------
+    var tg = (window.Telegram && window.Telegram.WebApp) ? window.Telegram.WebApp : null;
+
+    if (tg) {
       try {
-        Telegram.WebApp.sendData(JSON.stringify(resultObj));
+        tg.sendData(JSON.stringify(resultObj));
       } catch (e) {
         console.error('Ошибка sendData:', e);
         alert('Не удалось передать данные в бота.');
@@ -699,7 +702,7 @@
       }
 
       try {
-        Telegram.WebApp.close();
+        tg.close();
       } catch (e) {
         console.warn('Не удалось закрыть WebApp:', e);
       }
