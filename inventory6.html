@@ -297,13 +297,12 @@
 <body>
 <header>
   <h1>Инвентаризация — Кофе Гарден</h1>
-  <span>Группы как кнопки, адаптировано под мобильные</span>
 </header>
 
 <main>
   <aside class="sidebar">
     <h2>Шаг 1</h2>
-    <p>Нажмите на группу. После ввода количества хотя бы по одному товару кнопка группы станет жёлтой.</p>
+    <p>Нажмите на группу. После ввода количества хотя бы по одному товару кнопка группы станет жёлтой</p>
     <div class="group-list" id="groupButtons"></div>
   </aside>
 
@@ -312,10 +311,17 @@
       <h2 id="groupTitle">Группа не выбрана</h2>
       <small id="groupMeta"></small>
     </div>
+    <p id="step2" style="margin: 0 0 8px 0; font-size: 13px; color: #555;">
+        <b>Шаг 2:</b> выберите товары и введите количество в соответствии с единицей измерения.
+    </p>
 
     <div id="tableContainer">
       <p class="empty-group">Выберите группу слева, чтобы начать инвентаризацию.</p>
     </div>
+
+    <p id="step3" style="margin: 12px 0 6px 0; font-size: 13px; color: #555;">
+        <b>Шаг 3:</b> сохраните результат для отправки Инвентаризации ЛПР или закройте MiniApp.
+    </p>
 
     <div class="actions">
       <button class="secondary" type="button" onclick="clearQuantities()">Очистить количества</button>
